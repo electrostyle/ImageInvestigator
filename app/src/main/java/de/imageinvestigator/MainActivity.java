@@ -150,20 +150,20 @@ public class MainActivity extends Activity {
                 if (thumbnail == null) throw new IllegalArgumentException("Kein lesbares Bild");
                 preview.setImageBitmap(thumbnail);
             }
-            detail.setText("Bild: " + opts.outWidth + " × " + opts.outHeight + " Pixel\nWebsuche über die Schaltflächen unten. Das Bild wird erst beim Start einer externen Suche an deren App übergeben.");
+            detail.setText("Bild: " + opts.outWidth + " × " + opts.outHeight + " Pixel\nWähle einen Suchdienst. Bei dessen Upload-Schaltfläche setzt die App dieses Bild ein.");
             showActions();
         } catch (Exception ex) { Toast.makeText(this, "Bild konnte nicht geöffnet werden", Toast.LENGTH_LONG).show(); }
     }
     private void showActions() {
         actions.removeAllViews();
         addButton(actions, "Bild an Google/Lens teilen (falls angeboten)", () -> shareImage(null));
-        addButton(actions, "Yandex Bilder", () -> openSite("https://yandex.com/images/"));
-        addButton(actions, "Bing Visual Search", () -> openSite("https://www.bing.com/visualsearch"));
-        addButton(actions, "TinEye", () -> openSite("https://tineye.com/"));
-        addButton(actions, "SauceNAO", () -> openSite("https://saucenao.com/"));
+        addButton(actions, "Yandex Bilder · Bild einsetzen", () -> searchWith("yandex"));
+        addButton(actions, "Bing Visual Search · Bild einsetzen", () -> searchWith("bing"));
+        addButton(actions, "TinEye · Bild einsetzen", () -> searchWith("tineye"));
+        addButton(actions, "SauceNAO · Bild einsetzen", () -> searchWith("saucenao"));
         addButton(actions, "Bild an eine andere App senden", () -> shareImage(null));
         TextView note = new TextView(this);
-        note.setText("Bei Yandex, Bing, TinEye und SauceNAO das Bild auf der geöffneten Seite selbst hochladen. SafeSearch dort prüfen. Eine Websuche findet nur öffentlich indexierte Inhalte.");
+        note.setText("Auf der Suchseite Upload/Bild auswählen antippen. Das ausgewählte Foto wird dann automatisch eingesetzt; der jeweilige Dienst erhält es beim Absenden. Manche Anbieter sperren eingebettete Browser oder ändern ihre Upload-Seite. SafeSearch dort prüfen.");
         note.setPadding(0, 18, 0, 12); actions.addView(note);
         String[] sites = {"x.com", "instagram.com", "facebook.com", "tiktok.com", "pinterest.com"};
         for (String site : sites) addButton(actions, "Öffentliche Suche: " + site, () -> {
@@ -186,6 +186,14 @@ public class MainActivity extends Activity {
         if (packageName != null) send.setPackage(packageName);
         try { startActivity(Intent.createChooser(send, "Bild suchen mit")); }
         catch (Exception ex) { Toast.makeText(this, "Keine passende App installiert", Toast.LENGTH_SHORT).show(); }
+    }
+    private void searchWith(String service) {
+        if (selected == null) return;
+        Intent intent = new Intent(this, SearchActivity.class);
+        intent.putExtra("service", service);
+        intent.putExtra(Intent.EXTRA_STREAM, selected);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
     private void openSite(String url) {
         try { startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))); }
