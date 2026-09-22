@@ -9,7 +9,7 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -33,3 +33,10 @@ jobs:
           name: ImageInvestigator-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+      - name: Direkten APK-Download veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk ImageInvestigator-debug.apk
+          gh release view testing >/dev/null 2>&1 || gh release create testing --target "$GITHUB_SHA" --title "Testversion (Debug)" --notes "Android-Debugversion zum Ausprobieren. Noch nicht auf einem Gerät getestet." --prerelease
+          gh release upload testing ImageInvestigator-debug.apk --clobber
